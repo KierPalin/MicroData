@@ -35,6 +35,7 @@ namespace microcode {
                 controller.A.id,
                 () => {
                     this.currentTestIndex += 1
+                    this.yScrollOffset = 0
 
                     switch (this.currentTestIndex) {
                         case 1:
@@ -391,6 +392,7 @@ namespace microcode {
             }
 
             this.testLog.push("Wait 5 minutes")
+            this.update()
             basic.pause(300000)
 
             for (let i = 1; i <= 4; i++) {
@@ -412,6 +414,7 @@ namespace microcode {
             }
 
             this.testLog.push("Wait 60 minutes")
+            this.update()
             basic.pause(3600000)
 
             this.testLog.push("getRows(0, 100)") // Headers + 5 rows
@@ -461,6 +464,7 @@ namespace microcode {
                 )
                 this.testLog.push("0 -> " +datalogger.getNumberOfRows(0))   // 1 + (i * 4)
                 this.testLog.push("Waiting 2 minutes")
+                this.update()
                 basic.pause(120000)
             }
 
@@ -478,7 +482,16 @@ namespace microcode {
                 for (let i = 0; i < rows.length; i++) {
                     this.testLog.push(rows[i]);
                 }
-                
+            }
+
+            this.testLog.push("Wait 60 minutes")
+            this.update()
+            basic.pause(3600000)
+
+            this.testLog.push("getRows(0, 100)") // Headers + 5 rows
+            rows = datalogger.getRows(0, 100).split("\n"); // ""
+            for (let i = 0; i < rows.length; i++) {
+                this.testLog.push(rows[i]);
             }
         }
         
