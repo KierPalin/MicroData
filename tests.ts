@@ -396,7 +396,7 @@ namespace microcode {
             basic.pause(300000)
 
             for (let i = 1; i <= 4; i++) {
-                this.testLog.push("Adding 4 rows")
+                this.testLog.push("Adding 1 row")
                 datalogger.log(
                     datalogger.createCV("Sensor", "Accel. X"),
                     datalogger.createCV("Time (ms)", "1000"),
@@ -455,7 +455,7 @@ namespace microcode {
             this.testLog.push("0 -> " +datalogger.getNumberOfRows(0))   // 1
 
             for (let i = 1; i <= 4; i++) {
-                this.testLog.push("Adding 4 rows")
+                this.testLog.push("Adding 1 row")
                 datalogger.log(
                     datalogger.createCV("Sensor", "Accel. X"),
                     datalogger.createCV("Time (ms)", "1000"),
