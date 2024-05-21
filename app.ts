@@ -15,7 +15,7 @@ namespace microcode {
             basic.pause(30)
             reportEvent("app.start")
             this.sceneManager = new SceneManager()
-            this.pushScene(new Home(this))
+            this.pushScene(new Test(this))
         }
 
         public saveBuffer(slot: string, buf: Buffer) {

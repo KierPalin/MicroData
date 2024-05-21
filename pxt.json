@@ -59,7 +59,8 @@
         "dataRecorder.ts",
         "sensorEvent.ts",
         "clearDataloggerScreen.ts",
-        "generateGraph.ts"
+        "generateGraph.ts",
+        "tests.ts"
     ],
     "testFiles": [],
     "supportedTargets": [
