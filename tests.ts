@@ -199,9 +199,25 @@ namespace microcode {
             ])
 
             this.testLog.push("getRows(1, 4)")
-            let rows = datalogger.getRows(1, 4).split("\n"); // Rows with reading 1 -> reading 4
+            let rows = datalogger.getRows(1, 4).split("\n"); // ""
             for (let i = 0; i < rows.length; i++) {
                 this.testLog.push(rows[i]);
+            }
+
+            this.testLog.push("getRows(0, 4)")
+            rows = datalogger.getRows(0, 4).split("\n"); // Header
+            for (let i = 0; i < rows.length; i++) {
+                this.testLog.push(rows[i]);
+            }
+
+            this.testLog.push("adding 10 rows")
+            for (let i = 1; i <= 10; i++) {
+                datalogger.log(
+                    datalogger.createCV("Sensor", "Accel. X"),
+                    datalogger.createCV("Time (ms)", "1000"),
+                    datalogger.createCV("Reading", +i),
+                    datalogger.createCV("Event", "N/A")
+                )
             }
 
             this.testLog.push("getRows(1, 4)")
@@ -220,22 +236,6 @@ namespace microcode {
                 )
             }
 
-            this.testLog.push("getRows(1, 4)")
-            rows = datalogger.getRows(1, 4).split("\n"); // Rows with reading 1 -> reading 4
-            for (let i = 0; i < rows.length; i++) {
-                this.testLog.push(rows[i]);
-            }
-
-            this.testLog.push("adding 10 rows")
-            for (let i = 21; i <= 30; i++) {
-                datalogger.log(
-                    datalogger.createCV("Sensor", "Accel. X"),
-                    datalogger.createCV("Time (ms)", "1000"),
-                    datalogger.createCV("Reading", +i),
-                    datalogger.createCV("Event", "N/A")
-                )
-            }
-
             this.testLog.push("getRows(26, 4)")
             rows = datalogger.getRows(26, 4).split("\n"); // Rows with reading 26 -> reading 30
             for (let i = 0; i < rows.length; i++) {
@@ -245,12 +245,13 @@ namespace microcode {
 
         private test_8() {
             this.testLog = []
-            this.testLog.push("Test 8: getRows() without data")
+            this.testLog.push("Test 8: getRows() no data")
 
             this.testLog.push("clearing log");
             datalogger.deleteLog(datalogger.DeleteType.Full)
             datalogger.includeTimestamp(FlashLogTimeStampFormat.None)
 
+            this.testLog.push("getRows(0, 100)")
             let rows = datalogger.getRows(0, 100).split("\n"); // ""
             for (let i = 0; i < rows.length; i++) {
                 this.testLog.push(rows[i]);
@@ -274,7 +275,7 @@ namespace microcode {
             datalogger.deleteLog(datalogger.DeleteType.Full)
             datalogger.includeTimestamp(FlashLogTimeStampFormat.None)
 
-            this.testLog.push("adding data");
+            this.testLog.push("adding 5 rows");
             for (let i = 1; i <= 5; i++) {
                 datalogger.log(
                     datalogger.createCV("Sensor", "Accel. X"),
@@ -310,7 +311,7 @@ namespace microcode {
                 this.testLog.push(rows[i]);
             }
 
-            this.testLog.push("adding data");
+            this.testLog.push("adding 5 rows");
             for (let i = 1; i <= 5; i++) {
                 datalogger.log(
                     datalogger.createCV("Sensor", "Accel. X"),
@@ -345,7 +346,7 @@ namespace microcode {
                 "EXTRA 2"
             ])
 
-            this.testLog.push("adding data");
+            this.testLog.push("adding 5 rows");
             for (let i = 1; i <= 5; i++) {
                 datalogger.log(
                     datalogger.createCV("Sensor", "Accel. X"),
