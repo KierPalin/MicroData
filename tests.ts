@@ -82,6 +82,7 @@ namespace microcode {
         private test_1() {
             this.testLog = []
             this.testLog.push("Test 1: getNumberOfRows(n)")
+
             datalogger.deleteLog(datalogger.DeleteType.Full)
             datalogger.includeTimestamp(FlashLogTimeStampFormat.None)
 
@@ -95,7 +96,7 @@ namespace microcode {
                 "Event"
             ])
 
-            this.testLog.push("0 -> " +datalogger.getNumberOfRows(0))   // 0
+            this.testLog.push("0 -> " +datalogger.getNumberOfRows(0))   // 1
 
             this.testLog.push("Writing 10 elements")
             for (let i = 1; i <= 10; i++) {
@@ -129,10 +130,10 @@ namespace microcode {
 
         private test_2() {
             this.testLog = []
-            this.testLog.push("Test 2: getRows(-4, 10)") // 10 rows
+            this.testLog.push("Test 2: getRows(-4, 10)") 
 
-            this.testLog.push("getRows(-4, 10)")
-            const rows = datalogger.getRows(-4, 10).split("\n");
+            this.testLog.push("getRows(-4, 10)") 
+            const rows = datalogger.getRows(-4, 10).split("\n"); // ""
             for (let i = 0; i < rows.length; i++) {
                 this.testLog.push(rows[i]);
             }
@@ -140,10 +141,10 @@ namespace microcode {
 
         private test_3() {
             this.testLog = []
-            this.testLog.push("Test 3: getRows(0, 0)") // ""
+            this.testLog.push("Test 3: getRows(0, 0)") 
 
-            this.testLog.push("getRows(0, 0)")
-            const rows = datalogger.getRows(0, 0).split("\n");
+            this.testLog.push("getRows(0, 0)") 
+            const rows = datalogger.getRows(0, 0).split("\n"); // ""
             for (let i = 0; i < rows.length; i++) {
                 this.testLog.push(rows[i]);
             }
@@ -151,10 +152,10 @@ namespace microcode {
 
         private test_4() {
             this.testLog = []
-            this.testLog.push("Test 4: getRows(3, -3)") // ""
+            this.testLog.push("Test 4: getRows(3, -3)") 
 
-            this.testLog.push("getRows(3, -3)")
-            const rows = datalogger.getRows(3, -3).split("\n");
+            this.testLog.push("getRows(3, -3)") 
+            const rows = datalogger.getRows(3, -3).split("\n"); // ""
             for (let i = 0; i < rows.length; i++) {
                 this.testLog.push(rows[i]);
             }
@@ -165,8 +166,8 @@ namespace microcode {
             this.testLog = []
             this.testLog.push("Test 5: getRows(9, 1)")
 
-            this.testLog.push("getRows(9, 1)")
-            const rows = datalogger.getRows(9, 1).split("\n"); // 1 Row which has the reading "9"
+            this.testLog.push("getRows(9, 1)") 
+            const rows = datalogger.getRows(9, 1).split("\n");  // 1 Row which has the reading "9"
             for (let i = 0; i < rows.length; i++) {
                 this.testLog.push(rows[i]);
             }
@@ -174,10 +175,10 @@ namespace microcode {
 
         private test_6() {
             this.testLog = []
-            this.testLog.push("Test 6: getRows(100, 100)") // Headers + 20 rows
+            this.testLog.push("Test 6: getRows(100, 100)") 
 
-            this.testLog.push("getRows(100, 100)")
-            const rows = datalogger.getRows(100, 100).split("\n");
+            this.testLog.push("getRows(100, 100)") 
+            const rows = datalogger.getRows(100, 100).split("\n"); // ""
             for (let i = 0; i < rows.length; i++) {
                 this.testLog.push(rows[i]);
             }
@@ -206,7 +207,7 @@ namespace microcode {
             }
 
             this.testLog.push("getRows(0, 4)")
-            rows = datalogger.getRows(0, 4).split("\n"); // Header
+            rows = datalogger.getRows(0, 4).split("\n"); // Headers
             for (let i = 0; i < rows.length; i++) {
                 this.testLog.push(rows[i]);
             }
@@ -238,7 +239,7 @@ namespace microcode {
             }
 
             this.testLog.push("getRows(26, 4)")
-            rows = datalogger.getRows(26, 4).split("\n"); // Rows with reading 26 -> reading 30
+            rows = datalogger.getRows(26, 4).split("\n"); // ""
             for (let i = 0; i < rows.length; i++) {
                 this.testLog.push(rows[i]);
             }
@@ -287,7 +288,7 @@ namespace microcode {
             }
 
             this.testLog.push("getRows(0, 100)")
-            rows = datalogger.getRows(0, 100).split("\n"); // All
+            rows = datalogger.getRows(0, 100).split("\n"); // Headers + 5 rows
             for (let i = 0; i < rows.length; i++) {
                 this.testLog.push(rows[i]);
             }
@@ -321,7 +322,7 @@ namespace microcode {
             }
 
             this.testLog.push("getRows(0, 100)")
-            rows = datalogger.getRows(0, 100).split("\n"); // All
+            rows = datalogger.getRows(0, 100).split("\n"); // Headers + 5 rows
             for (let i = 0; i < rows.length; i++) {
                 this.testLog.push(rows[i]);
             }
@@ -334,7 +335,7 @@ namespace microcode {
             ])
             
             this.testLog.push("getRows(0, 100)")
-            rows = datalogger.getRows(0, 100).split("\n"); // All
+            rows = datalogger.getRows(0, 100).split("\n"); // All with the new columns as a row at the end
             for (let i = 0; i < rows.length; i++) {
                 this.testLog.push(rows[i]);
             }
@@ -357,7 +358,7 @@ namespace microcode {
             }
             
             this.testLog.push("getRows(0, 100)")
-            rows = datalogger.getRows(0, 100).split("\n"); // All
+            rows = datalogger.getRows(0, 100).split("\n");  // All with the new columns as a row at the end, followed by these new columns as another row at the end
             for (let i = 0; i < rows.length; i++) {
                 this.testLog.push(rows[i]);
             }
@@ -385,8 +386,8 @@ namespace microcode {
                 "Event"
             ])
 
-            this.testLog.push("getRows(0, 100)") // Headers
-            rows = datalogger.getRows(0, 100).split("\n"); // ""
+            this.testLog.push("getRows(0, 100)") 
+            rows = datalogger.getRows(0, 100).split("\n"); // Headers
             for (let i = 0; i < rows.length; i++) {
                 this.testLog.push(rows[i]);
             }
@@ -407,8 +408,8 @@ namespace microcode {
                 basic.pause(120000)
             }
 
-            this.testLog.push("getRows(0, 100)") // Headers + 5 rows
-            rows = datalogger.getRows(0, 100).split("\n"); // ""
+            this.testLog.push("getRows(0, 100)") 
+            rows = datalogger.getRows(0, 100).split("\n"); // Headers + 4 rows
             for (let i = 0; i < rows.length; i++) {
                 this.testLog.push(rows[i]);
             }
@@ -417,8 +418,8 @@ namespace microcode {
             this.update()
             basic.pause(3600000)
 
-            this.testLog.push("getRows(0, 100)") // Headers + 5 rows
-            rows = datalogger.getRows(0, 100).split("\n"); // ""
+            this.testLog.push("getRows(0, 100)") 
+            rows = datalogger.getRows(0, 100).split("\n"); // Headers + 4 rows
             for (let i = 0; i < rows.length; i++) {
                 this.testLog.push(rows[i]);
             }
@@ -427,8 +428,8 @@ namespace microcode {
                 this.testLog.push("Wait 1 Second")
                 basic.pause(1000)
 
-                this.testLog.push("getRows(0, 100)") // Headers + 5 rows
-                rows = datalogger.getRows(0, 100).split("\n"); // ""
+                this.testLog.push("getRows(0, 100)")
+                rows = datalogger.getRows(0, 100).split("\n"); // Headers + 4 rows
                 for (let i = 0; i < rows.length; i++) {
                     this.testLog.push(rows[i]);
                 }
@@ -446,8 +447,8 @@ namespace microcode {
                 "Event"
             ])
 
-            this.testLog.push("getRows(0, 100)") // Headers
-            rows = datalogger.getRows(0, 100).split("\n"); // ""
+            this.testLog.push("getRows(0, 100)")
+            rows = datalogger.getRows(0, 100).split("\n"); // Headers
             for (let i = 0; i < rows.length; i++) {
                 this.testLog.push(rows[i]);
             }
@@ -462,19 +463,19 @@ namespace microcode {
                     datalogger.createCV("Reading", +i),
                     datalogger.createCV("Event", "N/A")
                 )
-                this.testLog.push("0 -> " +datalogger.getNumberOfRows(0))   // 1 + (i * 4)
+                this.testLog.push("0 -> " +datalogger.getNumberOfRows(0))   // 1 + i
                 this.testLog.push("Waiting 2 minutes")
                 this.update()
                 basic.pause(120000)
             }
 
-            this.testLog.push("getRows(-3, 3)") // Headers + 5 rows
+            this.testLog.push("getRows(-3, 3)")
             rows = datalogger.getRows(-3, 3).split("\n"); // ""
             for (let i = 0; i < rows.length; i++) {
                 this.testLog.push(rows[i]);
             }
 
-            this.testLog.push("-5 -> " +datalogger.getNumberOfRows(-5))   // 17
+            this.testLog.push("-5 -> " +datalogger.getNumberOfRows(-5))   // 1 + 4
 
             for (let i = 1; i <= 10; i++) {
                 this.testLog.push("getRows(0, 100)")
@@ -488,8 +489,8 @@ namespace microcode {
             this.update()
             basic.pause(3600000)
 
-            this.testLog.push("getRows(0, 100)") // Headers + 5 rows
-            rows = datalogger.getRows(0, 100).split("\n"); // ""
+            this.testLog.push("getRows(0, 100)")
+            rows = datalogger.getRows(0, 100).split("\n"); // All
             for (let i = 0; i < rows.length; i++) {
                 this.testLog.push(rows[i]);
             }
