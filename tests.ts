@@ -108,9 +108,10 @@ namespace microcode {
                 )
             }
             
-            this.testLog.push("0 -> " +datalogger.getNumberOfRows(0))   // 11
-            this.testLog.push("1 -> " +datalogger.getNumberOfRows(1))   // 10
-            this.testLog.push("10 -> " +datalogger.getNumberOfRows(10)) // 1
+            this.testLog.push("0 -> " +datalogger.getNumberOfRows(0))     // 11
+            this.testLog.push("1 -> " +datalogger.getNumberOfRows(1))     // 10
+            this.testLog.push("10 -> " +datalogger.getNumberOfRows(10))   // 1
+            this.testLog.push("100 -> " +datalogger.getNumberOfRows(100)) // 0
 
             this.testLog.push("Writing 10 more elements")
             for (let i = 11; i <= 20; i++) {
