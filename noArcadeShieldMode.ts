@@ -29,7 +29,7 @@ namespace microcode {
                 this.log();
             })
 
-            control.onEvent(DAL.DEVICE_BUTTON_ALL_EVENTS, DAL.DEVICE_ID_BUTTON_B, () => {
+            control.onEvent(DAL.DEVICE_BUTTON_EVT_DOWN, DAL.DEVICE_ID_BUTTON_B, () => {
                 basic.showLeds(`
                     . . . . .
                     . # . # .
@@ -43,37 +43,37 @@ namespace microcode {
                 this.sensorHasBeenSelected = false
             })
 
-            control.inBackground(() => {this.dynamicSensorSelectionLoop();});
+            this.dynamicSensorSelectionLoop();
             this.showSensorIcon();
         }
 
         private dynamicSensorSelectionLoop() {
             const dynamicInfo = [
-                {sensor: new AccelerometerXSensor(), uiState: UI_DISPLAY_STATE.ACCELERATION, threshold: 0.50}, 
-                {sensor: new AccelerometerYSensor(), uiState: UI_DISPLAY_STATE.ACCELERATION, threshold: 0.50}, 
-                {sensor: new AccelerometerZSensor(), uiState: UI_DISPLAY_STATE.ACCELERATION, threshold: 0.50},
+                {sensor: new AccelerometerXSensor(), uiState: UI_DISPLAY_STATE.ACCELERATION, threshold: 0.25}, 
+                {sensor: new AccelerometerYSensor(), uiState: UI_DISPLAY_STATE.ACCELERATION, threshold: 0.25}, 
+                {sensor: new AccelerometerZSensor(), uiState: UI_DISPLAY_STATE.ACCELERATION, threshold: 0.25},
                 {sensor: new LightSensor(),          uiState: UI_DISPLAY_STATE.LIGHT,        threshold: 0.75},
                 {sensor: new MagnetXSensor(),        uiState: UI_DISPLAY_STATE.MAGNET,       threshold: 0.75}
             ];
 
             // Don't trigger the same sensor selection twice in a row:
             let ignore: boolean[] = dynamicInfo.map(_ => false);
+            control.inBackground(() => {
+                while (!this.sensorHasBeenSelected) {
+                    dynamicInfo.forEach((info, idx) => {
+                        if (!ignore[idx] && info.sensor.getNormalisedReading() > info.threshold) {
+                            this.uiState = info.uiState;
+                            this.dynamicSensorSelectionTriggered = true;
 
-            while (!this.sensorHasBeenSelected) {
-                dynamicInfo.forEach((info, idx) => {
-                    if (!ignore[idx] && info.sensor.getNormalisedReading() > info.threshold) {
-                        let x: string = ("" + info.sensor.getNormalisedReading()).slice(3)
-                        basic.showString(x)
-                        this.uiState = info.uiState;
-                        this.dynamicSensorSelectionTriggered = true;
-
-                        ignore = dynamicInfo.map(_ => false);
-                        ignore[idx] = true;
-                        basic.pause(1000)
-                        this.dynamicSensorSelectionTriggered = false;
-                    }
-                })
-            }
+                            ignore = dynamicInfo.map(_ => false);
+                            ignore[idx] = true;
+                            basic.pause(1000)
+                            this.dynamicSensorSelectionTriggered = false;
+                        }
+                    })
+                    basic.pause(100)
+                }
+            })
         }
 
         private showSensorIcon() {
