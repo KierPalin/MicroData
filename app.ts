@@ -21,14 +21,16 @@ namespace microcode {
             reportEvent("app.start")
 
             this.sceneManager = new SceneManager()
-
             datalogger.includeTimestamp(FlashLogTimeStampFormat.None)
-            
-            const arcadeShieldConnected = screenhelpers.displayPresent();
-            if (arcadeShieldConnected)
-                this.pushScene(new Home(this))
-            else
-                new DistributedLoggingProtocol(this, false);
+
+            // if (screenhelpers.displayPresent())
+            //     this.pushScene(new Home(this))
+            // else
+            //     new NoArcadeShieldMode(this)
+
+
+            if (!screenhelpers.displayPresent())
+                new NoArcadeShieldMode(this);
         }
 
         public pushScene(scene: Scene) {
