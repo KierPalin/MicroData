@@ -1,120 +1,184 @@
 namespace microcode {
-    const enum SENSOR_SELECTION {
+    const enum UI_DISPLAY_STATE {
         ACCELERATION,
         TEMPERATURE,
-        LIGHT
+        LIGHT,
+        MAGNET,
+        RADIO
     }
+
+    const SENSOR_SELECTION_SIZE = 5;
 
     const SHOW_EACH_SENSOR_FOR_MS: number = 1000;
 
     export class NoArcadeShieldMode {
         private app: App;
-        private currentUISensor: SENSOR_SELECTION;
-        private loopThroughSensorSelection: boolean;
+        private uiState: UI_DISPLAY_STATE;
+        private dynamicSensorSelectionTriggered: boolean;
+        private sensorHasBeenSelected: boolean;
 
         constructor(app: App) {
             this.app = app;
-            this.currentUISensor = SENSOR_SELECTION.ACCELERATION;
-            this.loopThroughSensorSelection = true
+            this.uiState = UI_DISPLAY_STATE.ACCELERATION;
+            this.sensorHasBeenSelected = false;
 
             control.onEvent(DAL.DEVICE_BUTTON_EVT_DOWN, DAL.DEVICE_ID_BUTTON_A, () => {
-                basic.showLeds(`
-                    . # . # .
-                    . # . # .
-                    . . . . .
-                    # . . . #
-                    . # # # .
-                `)
-                
-                this.loopThroughSensorSelection = false
+                this.dynamicSensorSelectionTriggered = false;
+                this.sensorHasBeenSelected = false
+
                 this.log();
             })
 
-            this.showSensorSelection();
-            // new DistributedLoggingProtocol(app, false);
+            control.onEvent(DAL.DEVICE_BUTTON_ALL_EVENTS, DAL.DEVICE_ID_BUTTON_B, () => {
+                basic.showLeds(`
+                    . . . . .
+                    . # . # .
+                    . . . . .
+                    . # . # .
+                    . # # # .    
+                `)
+                this.uiState = (this.uiState + 1) % SENSOR_SELECTION_SIZE
+
+                this.dynamicSensorSelectionTriggered = false;
+                this.sensorHasBeenSelected = false
+            })
+
+            control.inBackground(() => {this.dynamicSensorSelectionLoop();});
+            this.showSensorIcon();
         }
 
+        private dynamicSensorSelectionLoop() {
+            const dynamicInfo = [
+                {sensor: new AccelerometerXSensor(), uiState: UI_DISPLAY_STATE.ACCELERATION, threshold: 0.50}, 
+                {sensor: new AccelerometerYSensor(), uiState: UI_DISPLAY_STATE.ACCELERATION, threshold: 0.50}, 
+                {sensor: new AccelerometerZSensor(), uiState: UI_DISPLAY_STATE.ACCELERATION, threshold: 0.50},
+                {sensor: new LightSensor(),          uiState: UI_DISPLAY_STATE.LIGHT,        threshold: 0.75},
+                {sensor: new MagnetXSensor(),        uiState: UI_DISPLAY_STATE.MAGNET,       threshold: 0.75}
+            ];
 
-        private showSensorSelection() {
-            control.inBackground(() => {
+            // Don't trigger the same sensor selection twice in a row:
+            let ignore: boolean[] = dynamicInfo.map(_ => false);
 
-            })
+            while (!this.sensorHasBeenSelected) {
+                dynamicInfo.forEach((info, idx) => {
+                    if (!ignore[idx] && info.sensor.getNormalisedReading() > info.threshold) {
+                        let x: string = ("" + info.sensor.getNormalisedReading()).slice(3)
+                        basic.showString(x)
+                        this.uiState = info.uiState;
+                        this.dynamicSensorSelectionTriggered = true;
 
-            control.inBackground(() => {
-                while (this.loopThroughSensorSelection) {
-                    switch (this.currentUISensor) {
-                        case SENSOR_SELECTION.ACCELERATION:
-                            basic.showLeds(`
-                                # # # . .
-                                # # . . .
-                                # . # . .
-                                . . . # .
-                                . . . . .
-                            `)
-                            basic.pause(SHOW_EACH_SENSOR_FOR_MS / 3)
-                            
-                            basic.showLeds(`
-                                . . # . .
-                                . . # . .
-                                # # # # #
-                                . # # # .
-                                . . # . .
-                            `)
-                            basic.pause(SHOW_EACH_SENSOR_FOR_MS / 3)
-
-                            basic.showLeds(`
-                                . . # . .
-                                . . # # .
-                                # # # # #
-                                . . # # .
-                                . . # . .
-                            `)
-                            basic.pause(SHOW_EACH_SENSOR_FOR_MS / 3)
-
-                            this.currentUISensor = SENSOR_SELECTION.TEMPERATURE
-                            break;
-
-                        case SENSOR_SELECTION.TEMPERATURE:
-                            basic.showLeds(`
-                                # . . . .
-                                . . # # .
-                                . # . . .
-                                . # . . .
-                                . . # # .
-                            `)
-                            basic.pause(SHOW_EACH_SENSOR_FOR_MS)
-
-                            this.currentUISensor = SENSOR_SELECTION.LIGHT
-                            break;
-
-                        case SENSOR_SELECTION.LIGHT:
-                            basic.showLeds(`
-                                . . . . .
-                                . . # . .
-                                . . # . .
-                                . . . . .
-                                . . # . .
-                                `)
-                            basic.pause(SHOW_EACH_SENSOR_FOR_MS / 2)
-                            
-                            basic.showLeds(`
-                                . . # . .
-                                . # # # .
-                                . # # # .
-                                . . . . .
-                                . . # . .
-                                `)
-                            basic.pause(SHOW_EACH_SENSOR_FOR_MS / 2)
-
-                            this.currentUISensor = SENSOR_SELECTION.ACCELERATION
-                            break;
-                    
-                        default:
-                            break;
+                        ignore = dynamicInfo.map(_ => false);
+                        ignore[idx] = true;
+                        basic.pause(1000)
+                        this.dynamicSensorSelectionTriggered = false;
                     }
-                } // end of while (this.displaying)
-                return;
-            })
+                })
+            }
+        }
+
+        private showSensorIcon() {
+            this.dynamicSensorSelectionTriggered = false;
+
+            switch (this.uiState) {
+                case UI_DISPLAY_STATE.ACCELERATION:
+                    while (true) {
+                        basic.showLeds(`
+                            # # # . .
+                            # # . . .
+                            # . # . .
+                            . . . # .
+                            . . . . .
+                        `);
+
+                        this.dynamicSensorSelectionTriggered ? this.showSensorIcon() : basic.pause(SHOW_EACH_SENSOR_FOR_MS / 3);
+
+                        basic.showLeds(`
+                            . . # . .
+                            . . # . .
+                            # # # # #
+                            . # # # .
+                            . . # . .
+                        `);
+                        this.dynamicSensorSelectionTriggered ? this.showSensorIcon() : basic.pause(SHOW_EACH_SENSOR_FOR_MS / 3);
+
+                        basic.showLeds(`
+                            . . # . .
+                            . . # # .
+                            # # # # #
+                            . . # # .
+                            . . # . .
+                        `);
+                        this.dynamicSensorSelectionTriggered ? this.showSensorIcon() : basic.pause(SHOW_EACH_SENSOR_FOR_MS / 3);
+                    }
+
+                case UI_DISPLAY_STATE.TEMPERATURE:
+                    while (true) {
+                        basic.showLeds(`
+                            # . . . .
+                            . . # # .
+                            . # . . .
+                            . # . . .
+                            . . # # .
+                        `)
+                        this.dynamicSensorSelectionTriggered ? this.showSensorIcon() : basic.pause(SHOW_EACH_SENSOR_FOR_MS);
+                    }
+
+                case UI_DISPLAY_STATE.LIGHT:
+                    while (true) {
+                        basic.showLeds(`
+                            . . . . .
+                            . . # . .
+                            . . # . .
+                            . . . . .
+                            . . # . .
+                        `)
+                        this.dynamicSensorSelectionTriggered ? this.showSensorIcon() : basic.pause(SHOW_EACH_SENSOR_FOR_MS / 2);
+                        
+                        basic.showLeds(`
+                            . . # . .
+                            . # # # .
+                            . # # # .
+                            . . . . .
+                            . . # . .
+                        `)
+                        this.dynamicSensorSelectionTriggered ? this.showSensorIcon() : basic.pause(SHOW_EACH_SENSOR_FOR_MS / 2);
+                    }
+
+                case UI_DISPLAY_STATE.MAGNET:
+                    while (true) {
+                        basic.showLeds(`
+                            . # # # .
+                            # # # # #
+                            # # . # #
+                            . . . . .
+                            # # . # #
+                        `)
+                        this.dynamicSensorSelectionTriggered ? this.showSensorIcon() : basic.pause(SHOW_EACH_SENSOR_FOR_MS);
+                    }
+
+                case UI_DISPLAY_STATE.RADIO:
+                    while (true) {
+                        basic.showLeds(`
+                            . . . . .
+                            . . . . .
+                            . # # # .
+                            # . . . #
+                            . . # . . 
+                        `)
+                        this.dynamicSensorSelectionTriggered ? this.showSensorIcon() : basic.pause(SHOW_EACH_SENSOR_FOR_MS / 2);
+                        
+                        basic.showLeds(`
+                            . # # # .
+                            # . . . #
+                            . . # . .
+                            . # # # .
+                            . . # . .
+                        `)
+                        this.dynamicSensorSelectionTriggered ? this.showSensorIcon() : basic.pause(SHOW_EACH_SENSOR_FOR_MS / 2);
+                    }                    
+                default:
+                    break;
+            }
         }
 
         private log() {
@@ -124,15 +188,22 @@ namespace microcode {
         }
 
         private uiSelectionToSensors(): Sensor[] {
-            switch (this.currentUISensor) {
-                case SENSOR_SELECTION.ACCELERATION:
+            switch (this.uiState) {
+                case UI_DISPLAY_STATE.ACCELERATION:
                     return [new AccelerometerXSensor(), new AccelerometerYSensor(), new AccelerometerZSensor()]
 
-                case SENSOR_SELECTION.TEMPERATURE:
+                case UI_DISPLAY_STATE.TEMPERATURE:
                     return [new TemperatureSensor()]
 
-                case SENSOR_SELECTION.LIGHT:
+                case UI_DISPLAY_STATE.LIGHT:
                     return [new LightSensor()]
+
+                case UI_DISPLAY_STATE.MAGNET:
+                    return [new MagnetXSensor()]
+
+                case UI_DISPLAY_STATE.RADIO:
+                    // new DistributedLoggingProtocol(this.app, false);
+                    return []
             
                 default:
                     return []
