@@ -28,7 +28,8 @@ namespace microcode {
             this.uiSensorSelectState = UI_SENSOR_SELECT_STATE.ACCELERATION;
             this.sensorHasBeenSelected = false;
 
-            control.onEvent(DAL.DEVICE_BUTTON_EVT_DOWN, DAL.DEVICE_ID_BUTTON_A, () => {
+            // A Button
+            input.onButtonPressed(1, () => {
                 this.dynamicSensorSelectionTriggered = false;
 
                 if (this.uiMode == UI_MODE.SENSOR_SELECTION) {
@@ -41,7 +42,8 @@ namespace microcode {
                 }
             })
 
-            control.onEvent(DAL.DEVICE_BUTTON_EVT_DOWN, DAL.DEVICE_ID_BUTTON_B, () => {
+            // B Button
+            input.onButtonPressed(2, () => {
                 this.dynamicSensorSelectionTriggered = false;
                 this.sensorHasBeenSelected = false
 
