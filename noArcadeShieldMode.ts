@@ -19,21 +19,15 @@ namespace microcode {
         private app: App;
         private uiMode: UI_MODE;
         private uiSensorSelectState: UI_SENSOR_SELECT_STATE;
-        private dynamicSensorSelectionTriggered: boolean;
-        private uiSensorSelectStateHasChanged: boolean;
 
         constructor(app: App) {
             this.app = app;
             this.uiMode = UI_MODE.SENSOR_SELECTION;
             this.uiSensorSelectState = UI_SENSOR_SELECT_STATE.ACCELERATION;
-            this.uiSensorSelectStateHasChanged = false;
 
             // A Button
             input.onButtonPressed(1, () => {
                 if (this.uiMode == UI_MODE.SENSOR_SELECTION) {
-                    this.dynamicSensorSelectionTriggered = false;
-                    this.uiSensorSelectStateHasChanged = true;
-
                     this.uiMode = UI_MODE.LOGGING;
                     this.log();
                 }
@@ -41,10 +35,13 @@ namespace microcode {
 
             // B Button
             input.onButtonPressed(2, () => {
-                if (this.uiMode == UI_MODE.SENSOR_SELECTION) {
+                if (this.uiMode == UI_MODE.SENSOR_SELECTION)
                     this.uiSensorSelectState = (this.uiSensorSelectState + 1) % SENSOR_SELECTION_SIZE
-                    this.dynamicSensorSelectionTriggered = false;
-                    this.uiSensorSelectStateHasChanged = true;
+
+                else if (this.uiMode == UI_MODE.LOGGING) {
+                    this.uiMode = UI_MODE.SENSOR_SELECTION;
+                    this.dynamicSensorSelectionLoop();
+                    this.showSensorIcon();
                 }
             })
 
@@ -59,7 +56,7 @@ namespace microcode {
                 {sensor: new AccelerometerYSensor(), uiState: UI_SENSOR_SELECT_STATE.ACCELERATION, threshold: 0.25}, 
                 {sensor: new AccelerometerZSensor(), uiState: UI_SENSOR_SELECT_STATE.ACCELERATION, threshold: 0.25},
                 {sensor: new LightSensor(),          uiState: UI_SENSOR_SELECT_STATE.LIGHT,        threshold: 0.75},
-                {sensor: new MagnetXSensor(),        uiState: UI_SENSOR_SELECT_STATE.MAGNET,       threshold: 0.80}
+                {sensor: new MagnetXSensor(),        uiState: UI_SENSOR_SELECT_STATE.MAGNET,       threshold: 0.80},
             ];
 
             // Don't trigger the same sensor selection twice in a row:
@@ -69,12 +66,10 @@ namespace microcode {
                     dynamicInfo.forEach((info, idx) => {
                         if (!ignore[idx] && info.sensor.getNormalisedReading() > info.threshold) {
                             this.uiSensorSelectState = info.uiState;
-                            this.dynamicSensorSelectionTriggered = true;
 
                             ignore = dynamicInfo.map(_ => false);
                             ignore[idx] = true;
                             basic.pause(1000)
-                            this.dynamicSensorSelectionTriggered = false;
                         }
                         basic.pause(100)
                     })
@@ -84,168 +79,180 @@ namespace microcode {
             })
         }
 
-        private handleDynamicSensorSelection(waitTime: number) {
-            this.dynamicSensorSelectionTriggered ? this.showSensorIcon() : basic.pause(waitTime);
-        }
-
-
-        private waitUntilSensorSelectStateChange(time: number, check_n_times: number): boolean {
+        private waitUntilSensorSelectStateChange(time: number, check_n_times: number, initialState: UI_SENSOR_SELECT_STATE): boolean {
             const period = time / check_n_times;
-            const initialState = this.uiSensorSelectState;
-            let timeWaited = 0;
 
             for (let n = 0; n < check_n_times; n++) {
-                if (this.uiSensorSelectState != initialState)
+                if (this.uiSensorSelectState != initialState || this.uiMode != UI_MODE.SENSOR_SELECTION)
                     return false;
 
                 basic.pause(period)
-                timeWaited += period
             }
             return true;
         }
 
-        private showSensorIcon() {
-            this.dynamicSensorSelectionTriggered = false;
+        private waitUntilUIModeChanges(time: number, check_n_times: number, initialState: UI_MODE): boolean {
+            const period = time / check_n_times;
 
-            while (true) {
-                switch (this.uiSensorSelectState) {
-                    case UI_SENSOR_SELECT_STATE.ACCELERATION: {
-                        // basic.showLeds() requires a '' literal; thus the following is un-loopable: 
-
-                        basic.showLeds(`
-                            # # # . .
-                            # # . . .
-                            # . # . .
-                            . . . # .
-                            . . . . .
-                        `);
-                        if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS / 3), 25)) break;
-
-                        basic.showLeds(`
-                            . . # . .
-                            . . # . .
-                            # # # # #
-                            . # # # .
-                            . . # . .
-                        `);
-                        if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS / 3), 25)) break;
-
-                        basic.showLeds(`
-                            . . # . .
-                            . . # # .
-                            # # # # #
-                            . . # # .
-                            . . # . .
-                        `);
-                        if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS / 3), 25)) break;
-                    }
-                        
-                    case UI_SENSOR_SELECT_STATE.TEMPERATURE: {
-                        basic.showLeds(`
-                            # . . . .
-                            . . # # .
-                            . # . . .
-                            . # . . .
-                            . . # # .
-                        `);
-                        if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS / 3), 25)) break;
-                        break;
-                    }
-
-                    case UI_SENSOR_SELECT_STATE.LIGHT: {
-                        basic.showLeds(`
-                            . . . . .
-                            . # # # .
-                            . . # . .
-                            . . . . .
-                            . . # . .
-                        `);
-                        if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS / 3), 25)) break;
-                        
-                        basic.showLeds(`
-                            . # # # .
-                            . # # # .
-                            . # # # .
-                            . . . . .
-                            . . # . .
-                        `);
-                        if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS / 3), 25)) break;
-                        break;
-                    }
-
-                    case UI_SENSOR_SELECT_STATE.MAGNET: {
-                        if (this.uiMode != UI_MODE.SENSOR_SELECTION) return;
-                        if (this.uiSensorSelectState != UI_SENSOR_SELECT_STATE.MAGNET) break;
-                        basic.showLeds(`
-                            . # # # .
-                            # # # # #
-                            # # . # #
-                            . . . . .
-                            . . . . .
-                        `)
-                        if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS / 3), 25)) break;
-
-                        basic.showLeds(`
-                            . # # # .
-                            # # # # #
-                            # # . # #
-                            . . . . .
-                            # # . # #
-                        `)
-                        if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS / 3), 25)) break;
-                        break;
-                    }
-
-                    case UI_SENSOR_SELECT_STATE.RADIO: {
-                        if (this.uiMode != UI_MODE.SENSOR_SELECTION) return
-                        basic.showLeds(`
-                            . . . . .
-                            . . . . .
-                            . # # # .
-                            # . . . #
-                            . . # . . 
-                        `);
-                        if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS / 3), 25)) break;
-                        
-                        basic.showLeds(`
-                            . # # # .
-                            # . . . #
-                            . # # # .
-                            # . . . #
-                            . . # . .
-                        `);
-                        if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS / 3), 25)) break;
-                        break;
-                    }
-
-                    default:
-                        return;
+            for (let n = 0; n < check_n_times; n++) {
+                if (this.uiMode != initialState) {
+                    return false;
                 }
-                // basic.pause(100)
+                basic.pause(period)
             }
+            return true;
         }
+
+
+        private showSensorIcon() {
+            control.inBackground(() => {
+                while (this.uiMode == UI_MODE.SENSOR_SELECTION) {
+                    switch (this.uiSensorSelectState) {
+                        case UI_SENSOR_SELECT_STATE.ACCELERATION: {
+                            // basic.showLeds() requires a '' literal; thus the following is un-loopable: 
+
+                            basic.showLeds(`
+                                # # # . .
+                                # # . . .
+                                # . # . .
+                                . . . # .
+                                . . . . .
+                            `);
+                            if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS / 3), 10, UI_SENSOR_SELECT_STATE.ACCELERATION)) break;
+
+                            basic.showLeds(`
+                                . . # . .
+                                . . # . .
+                                # # # # #
+                                . # # # .
+                                . . # . .
+                            `);
+                            if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS / 3), 10, UI_SENSOR_SELECT_STATE.ACCELERATION)) break;
+
+                            basic.showLeds(`
+                                . . # . .
+                                . . # # .
+                                # # # # #
+                                . . # # .
+                                . . # . .
+                            `);
+                            if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS / 3), 10, UI_SENSOR_SELECT_STATE.ACCELERATION)) break;
+
+                            break;
+                        }
+                            
+                        case UI_SENSOR_SELECT_STATE.TEMPERATURE: {
+                            basic.showLeds(`
+                                # . . . .
+                                . . # # .
+                                . # . . .
+                                . # . . .
+                                . . # # .
+                            `);
+                            if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS), 50, UI_SENSOR_SELECT_STATE.TEMPERATURE)) break;
+
+                            break;
+                        }
+
+                        case UI_SENSOR_SELECT_STATE.LIGHT: {
+                            basic.showLeds(`
+                                . . . . .
+                                . # # # .
+                                . . # . .
+                                . . . . .
+                                . . # . .
+                            `);
+                            if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS / 2), 50, UI_SENSOR_SELECT_STATE.LIGHT)) break;
+                            
+                            basic.showLeds(`
+                                . # # # .
+                                . # # # .
+                                . # # # .
+                                . . . . .
+                                . . # . .
+                            `);
+                            if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS / 2), 50, UI_SENSOR_SELECT_STATE.LIGHT)) break;
+
+                            break;
+                        }
+
+                        case UI_SENSOR_SELECT_STATE.MAGNET: {
+                            basic.showLeds(`
+                                . # # # .
+                                # # # # #
+                                # # . # #
+                                . . . . .
+                                . . . . .
+                            `)
+                            if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS / 2), 50, UI_SENSOR_SELECT_STATE.MAGNET)) break;
+
+                            basic.showLeds(`
+                                . # # # .
+                                # # # # #
+                                # # . # #
+                                . . . . .
+                                # # . # #
+                            `)
+                            if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS / 2), 50, UI_SENSOR_SELECT_STATE.MAGNET)) break;
+
+                            break;
+                        }
+
+                        case UI_SENSOR_SELECT_STATE.RADIO: {
+                            basic.showLeds(`
+                                . . . . .
+                                . . . . .
+                                . # # # .
+                                # . . . #
+                                . . # . . 
+                            `);
+                            if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS / 2), 50, UI_SENSOR_SELECT_STATE.RADIO)) break;
+                            
+                            basic.showLeds(`
+                                . # # # .
+                                # . . . #
+                                . # # # .
+                                # . . . #
+                                . . # . .
+                            `);
+                            if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS / 2), 50, UI_SENSOR_SELECT_STATE.RADIO)) break;
+
+                            break;
+                        }
+
+                        default:
+                            break;
+                    }
+                }
+            });
+        }
+
 
         private log() {
             const sensors = this.uiSelectionToSensors();
             let time = 0;
 
-            let start = input.runningTime();
-            while (true) {
-                start = input.runningTime();
-                sensors.forEach(sensor => {
-                    datalogger.log(
-                        datalogger.createCV("Sensor", sensor.getName()),
-                        datalogger.createCV("Time (ms)", time),
-                        datalogger.createCV("Reading", sensor.getReading()),
-                        datalogger.createCV("Event", "N/A")
-                    );
-                });
+            control.inBackground(() => {
+                while (this.uiMode == UI_MODE.LOGGING) {
+                    let start = input.runningTime();
+                    sensors.forEach(sensor => {
+                        datalogger.log(
+                            datalogger.createCV("Sensor", sensor.getName()),
+                            datalogger.createCV("Time (ms)", time),
+                            datalogger.createCV("Reading", sensor.getReading()),
+                            datalogger.createCV("Event", "N/A")
+                        );
+                    });
 
-                basic.showNumber((time / 1000));
-                basic.pause(Math.max(0, 1000 - (input.runningTime() - start)));
-                time += 1000;
-            }
+                    if (this.uiMode == UI_MODE.LOGGING)
+                        basic.showNumber((time / 1000));
+                    if (!this.waitUntilUIModeChanges(Math.max(0, 1000 - (input.runningTime() - start)), 80, UI_MODE.LOGGING)) break;
+                    time += 1000;
+                }
+            });
+            return;
         }
+
 
         private uiSelectionToSensors(): Sensor[] {
             switch (this.uiSensorSelectState) {
