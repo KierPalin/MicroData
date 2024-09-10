@@ -20,19 +20,20 @@ namespace microcode {
         private uiMode: UI_MODE;
         private uiSensorSelectState: UI_SENSOR_SELECT_STATE;
         private dynamicSensorSelectionTriggered: boolean;
-        private sensorHasBeenSelected: boolean;
+        private uiSensorSelectStateHasChanged: boolean;
 
         constructor(app: App) {
             this.app = app;
             this.uiMode = UI_MODE.SENSOR_SELECTION;
             this.uiSensorSelectState = UI_SENSOR_SELECT_STATE.ACCELERATION;
-            this.sensorHasBeenSelected = false;
+            this.uiSensorSelectStateHasChanged = false;
 
             // A Button
             input.onButtonPressed(1, () => {
                 if (this.uiMode == UI_MODE.SENSOR_SELECTION) {
                     this.dynamicSensorSelectionTriggered = false;
-                    this.sensorHasBeenSelected = true;
+                    this.uiSensorSelectStateHasChanged = true;
+
                     this.uiMode = UI_MODE.LOGGING;
                     this.log();
                 }
@@ -43,7 +44,7 @@ namespace microcode {
                 if (this.uiMode == UI_MODE.SENSOR_SELECTION) {
                     this.uiSensorSelectState = (this.uiSensorSelectState + 1) % SENSOR_SELECTION_SIZE
                     this.dynamicSensorSelectionTriggered = false;
-                    this.sensorHasBeenSelected = false
+                    this.uiSensorSelectStateHasChanged = true;
                 }
             })
 
@@ -64,21 +65,19 @@ namespace microcode {
             // Don't trigger the same sensor selection twice in a row:
             let ignore: boolean[] = dynamicInfo.map(_ => false);
             control.inBackground(() => {
-                while (!this.sensorHasBeenSelected) {
-                    if (this.uiMode == UI_MODE.SENSOR_SELECTION) {
-                        dynamicInfo.forEach((info, idx) => {
-                            if (!ignore[idx] && info.sensor.getNormalisedReading() > info.threshold) {
-                                this.uiSensorSelectState = info.uiState;
-                                this.dynamicSensorSelectionTriggered = true;
+                while (this.uiMode == UI_MODE.SENSOR_SELECTION) {
+                    dynamicInfo.forEach((info, idx) => {
+                        if (!ignore[idx] && info.sensor.getNormalisedReading() > info.threshold) {
+                            this.uiSensorSelectState = info.uiState;
+                            this.dynamicSensorSelectionTriggered = true;
 
-                                ignore = dynamicInfo.map(_ => false);
-                                ignore[idx] = true;
-                                basic.pause(1000)
-                                this.dynamicSensorSelectionTriggered = false;
-                            }
-                            basic.pause(100)
-                        })
-                    }
+                            ignore = dynamicInfo.map(_ => false);
+                            ignore[idx] = true;
+                            basic.pause(1000)
+                            this.dynamicSensorSelectionTriggered = false;
+                        }
+                        basic.pause(100)
+                    })
                     basic.pause(100)
                 }
                 return;
@@ -89,15 +88,30 @@ namespace microcode {
             this.dynamicSensorSelectionTriggered ? this.showSensorIcon() : basic.pause(waitTime);
         }
 
+
+        private waitUntilSensorSelectStateChange(time: number, check_n_times: number): boolean {
+            const period = time / check_n_times;
+            const initialState = this.uiSensorSelectState;
+            let timeWaited = 0;
+
+            for (let n = 0; n < check_n_times; n++) {
+                if (this.uiSensorSelectState != initialState)
+                    return false;
+
+                basic.pause(period)
+                timeWaited += period
+            }
+            return true;
+        }
+
         private showSensorIcon() {
             this.dynamicSensorSelectionTriggered = false;
 
             while (true) {
                 switch (this.uiSensorSelectState) {
                     case UI_SENSOR_SELECT_STATE.ACCELERATION: {
-                        // basic.showLeds() requires a literal ''; thus the following is un-loopable: 
+                        // basic.showLeds() requires a '' literal; thus the following is un-loopable: 
 
-                        if (this.uiMode != UI_MODE.SENSOR_SELECTION) return
                         basic.showLeds(`
                             # # # . .
                             # # . . .
@@ -105,9 +119,8 @@ namespace microcode {
                             . . . # .
                             . . . . .
                         `);
-                        this.handleDynamicSensorSelection(SHOW_EACH_SENSOR_FOR_MS / 3);
+                        if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS / 3), 25)) break;
 
-                        if (this.uiMode != UI_MODE.SENSOR_SELECTION) return
                         basic.showLeds(`
                             . . # . .
                             . . # . .
@@ -115,9 +128,8 @@ namespace microcode {
                             . # # # .
                             . . # . .
                         `);
-                        this.handleDynamicSensorSelection(SHOW_EACH_SENSOR_FOR_MS / 3);
+                        if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS / 3), 25)) break;
 
-                        if (this.uiMode != UI_MODE.SENSOR_SELECTION) return
                         basic.showLeds(`
                             . . # . .
                             . . # # .
@@ -125,33 +137,30 @@ namespace microcode {
                             . . # # .
                             . . # . .
                         `);
-                        this.handleDynamicSensorSelection(SHOW_EACH_SENSOR_FOR_MS / 3);
-                        break;
+                        if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS / 3), 25)) break;
                     }
                         
                     case UI_SENSOR_SELECT_STATE.TEMPERATURE: {
-                        if (this.uiMode != UI_MODE.SENSOR_SELECTION) return
                         basic.showLeds(`
                             # . . . .
                             . . # # .
                             . # . . .
                             . # . . .
                             . . # # .
-                        `)
-                        this.handleDynamicSensorSelection(SHOW_EACH_SENSOR_FOR_MS);
+                        `);
+                        if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS / 3), 25)) break;
                         break;
                     }
 
                     case UI_SENSOR_SELECT_STATE.LIGHT: {
-                        if (this.uiMode != UI_MODE.SENSOR_SELECTION) return
                         basic.showLeds(`
                             . . . . .
                             . # # # .
                             . . # . .
                             . . . . .
                             . . # . .
-                        `)
-                        this.handleDynamicSensorSelection(SHOW_EACH_SENSOR_FOR_MS / 2);
+                        `);
+                        if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS / 3), 25)) break;
                         
                         basic.showLeds(`
                             . # # # .
@@ -159,13 +168,14 @@ namespace microcode {
                             . # # # .
                             . . . . .
                             . . # . .
-                        `)
-                        this.handleDynamicSensorSelection(SHOW_EACH_SENSOR_FOR_MS / 2);
+                        `);
+                        if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS / 3), 25)) break;
                         break;
                     }
 
                     case UI_SENSOR_SELECT_STATE.MAGNET: {
-                        if (this.uiMode != UI_MODE.SENSOR_SELECTION) return
+                        if (this.uiMode != UI_MODE.SENSOR_SELECTION) return;
+                        if (this.uiSensorSelectState != UI_SENSOR_SELECT_STATE.MAGNET) break;
                         basic.showLeds(`
                             . # # # .
                             # # # # #
@@ -173,7 +183,7 @@ namespace microcode {
                             . . . . .
                             . . . . .
                         `)
-                        this.handleDynamicSensorSelection(SHOW_EACH_SENSOR_FOR_MS / 2);
+                        if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS / 3), 25)) break;
 
                         basic.showLeds(`
                             . # # # .
@@ -182,7 +192,7 @@ namespace microcode {
                             . . . . .
                             # # . # #
                         `)
-                        this.handleDynamicSensorSelection(SHOW_EACH_SENSOR_FOR_MS / 2);
+                        if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS / 3), 25)) break;
                         break;
                     }
 
@@ -194,8 +204,8 @@ namespace microcode {
                             . # # # .
                             # . . . #
                             . . # . . 
-                        `)
-                        this.handleDynamicSensorSelection(SHOW_EACH_SENSOR_FOR_MS / 2);
+                        `);
+                        if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS / 3), 25)) break;
                         
                         basic.showLeds(`
                             . # # # .
@@ -203,8 +213,8 @@ namespace microcode {
                             . # # # .
                             # . . . #
                             . . # . .
-                        `)
-                        this.handleDynamicSensorSelection(SHOW_EACH_SENSOR_FOR_MS / 2);
+                        `);
+                        if (!this.waitUntilSensorSelectStateChange((SHOW_EACH_SENSOR_FOR_MS / 3), 25)) break;
                         break;
                     }
 
