@@ -1,7 +1,8 @@
 namespace microcode {
     const enum UI_MODE {
         SENSOR_SELECTION,
-        CONFIRM_SELECTION
+        CONFIRM_SELECTION,
+        LOGGING
     };
 
     const enum UI_SENSOR_SELECT_STATE {
@@ -38,6 +39,7 @@ namespace microcode {
                 }
 
                 else if (this.uiMode == UI_MODE.CONFIRM_SELECTION) {
+                    this.uiMode = UI_MODE.LOGGING;
                     this.log();
                 }
             })
@@ -64,7 +66,7 @@ namespace microcode {
                 {sensor: new AccelerometerYSensor(), uiState: UI_SENSOR_SELECT_STATE.ACCELERATION, threshold: 0.25}, 
                 {sensor: new AccelerometerZSensor(), uiState: UI_SENSOR_SELECT_STATE.ACCELERATION, threshold: 0.25},
                 {sensor: new LightSensor(),          uiState: UI_SENSOR_SELECT_STATE.LIGHT,        threshold: 0.75},
-                {sensor: new MagnetXSensor(),        uiState: UI_SENSOR_SELECT_STATE.MAGNET,       threshold: 0.75}
+                {sensor: new MagnetXSensor(),        uiState: UI_SENSOR_SELECT_STATE.MAGNET,       threshold: 0.80}
             ];
 
             // Don't trigger the same sensor selection twice in a row:
@@ -98,7 +100,7 @@ namespace microcode {
         private showSensorIcon() {
             this.dynamicSensorSelectionTriggered = false;
 
-            while (true) {
+            while (this.uiMode != UI_MODE.LOGGING) {
                 switch (this.uiSensorSelectState) {
                     case UI_SENSOR_SELECT_STATE.ACCELERATION: {
                         if (this.uiMode == UI_MODE.CONFIRM_SELECTION) {
@@ -170,7 +172,7 @@ namespace microcode {
                         else if (this.uiMode == UI_MODE.SENSOR_SELECTION) {
                             basic.showLeds(`
                                 . . . . .
-                                . . # . .
+                                . # # # .
                                 . . # . .
                                 . . . . .
                                 . . # . .
@@ -178,7 +180,7 @@ namespace microcode {
                             this.handleDynamicSensorSelection(SHOW_EACH_SENSOR_FOR_MS / 2);
                             
                             basic.showLeds(`
-                                . . # . .
+                                . # # # .
                                 . # # # .
                                 . # # # .
                                 . . . . .
@@ -202,9 +204,18 @@ namespace microcode {
                                 # # # # #
                                 # # . # #
                                 . . . . .
+                                . . . . .
+                            `)
+                            this.handleDynamicSensorSelection(SHOW_EACH_SENSOR_FOR_MS / 2);
+
+                            basic.showLeds(`
+                                . # # # .
+                                # # # # #
+                                # # . # #
+                                . . . . .
                                 # # . # #
                             `)
-                            this.handleDynamicSensorSelection(SHOW_EACH_SENSOR_FOR_MS);
+                            this.handleDynamicSensorSelection(SHOW_EACH_SENSOR_FOR_MS / 2);
                         }
                         break;
                     }
@@ -229,8 +240,8 @@ namespace microcode {
                             basic.showLeds(`
                                 . # # # .
                                 # . . . #
-                                . . # . .
                                 . # # # .
+                                # . . . #
                                 . . # . .
                             `)
                             this.handleDynamicSensorSelection(SHOW_EACH_SENSOR_FOR_MS / 2);
@@ -247,8 +258,24 @@ namespace microcode {
 
         private log() {
             const sensors = this.uiSelectionToSensors();
+            let time = 0;
 
-            basic.showString(sensors[0].getName())
+            let start = input.runningTime();
+            while (true) {
+                start = input.runningTime();
+                sensors.forEach(sensor => {
+                    datalogger.log(
+                        datalogger.createCV("Sensor", sensor.getName()),
+                        datalogger.createCV("Time (ms)", time),
+                        datalogger.createCV("Reading", sensor.getReading()),
+                        datalogger.createCV("Event", "N/A")
+                    );
+                });
+
+                basic.showNumber((time / 1000));
+                basic.pause(Math.max(0, 1000 - (input.runningTime() - start)));
+                time += 1000;
+            }
         }
 
         private uiSelectionToSensors(): Sensor[] {
