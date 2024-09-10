@@ -1,7 +1,6 @@
 namespace microcode {
     const enum UI_MODE {
         SENSOR_SELECTION,
-        CONFIRM_SELECTION,
         LOGGING
     };
 
@@ -31,14 +30,9 @@ namespace microcode {
 
             // A Button
             input.onButtonPressed(1, () => {
-                this.dynamicSensorSelectionTriggered = false;
-
                 if (this.uiMode == UI_MODE.SENSOR_SELECTION) {
+                    this.dynamicSensorSelectionTriggered = false;
                     this.sensorHasBeenSelected = true;
-                    this.uiMode = UI_MODE.CONFIRM_SELECTION;
-                }
-
-                else if (this.uiMode == UI_MODE.CONFIRM_SELECTION) {
                     this.uiMode = UI_MODE.LOGGING;
                     this.log();
                 }
@@ -46,13 +40,11 @@ namespace microcode {
 
             // B Button
             input.onButtonPressed(2, () => {
-                this.dynamicSensorSelectionTriggered = false;
-                this.sensorHasBeenSelected = false
-
-                if (this.uiMode == UI_MODE.CONFIRM_SELECTION)
-                    this.uiMode = UI_MODE.SENSOR_SELECTION
-                else if (this.uiMode == UI_MODE.SENSOR_SELECTION)
+                if (this.uiMode == UI_MODE.SENSOR_SELECTION) {
                     this.uiSensorSelectState = (this.uiSensorSelectState + 1) % SENSOR_SELECTION_SIZE
+                    this.dynamicSensorSelectionTriggered = false;
+                    this.sensorHasBeenSelected = false
+                }
             })
 
             this.dynamicSensorSelectionLoop();
@@ -100,155 +92,122 @@ namespace microcode {
         private showSensorIcon() {
             this.dynamicSensorSelectionTriggered = false;
 
-            while (this.uiMode != UI_MODE.LOGGING) {
+            while (true) {
                 switch (this.uiSensorSelectState) {
                     case UI_SENSOR_SELECT_STATE.ACCELERATION: {
-                        if (this.uiMode == UI_MODE.CONFIRM_SELECTION) {
-                            basic.clearScreen()
-                            basic.showString("Accel?");
-                            basic.pause(25)
-                        }
+                        // basic.showLeds() requires a literal ''; thus the following is un-loopable: 
 
-                        else if (this.uiMode == UI_MODE.SENSOR_SELECTION) {
-                            // basic.showLeds() requires a literal ''; thus the following is unloopable: 
+                        if (this.uiMode != UI_MODE.SENSOR_SELECTION) return
+                        basic.showLeds(`
+                            # # # . .
+                            # # . . .
+                            # . # . .
+                            . . . # .
+                            . . . . .
+                        `);
+                        this.handleDynamicSensorSelection(SHOW_EACH_SENSOR_FOR_MS / 3);
 
-                            basic.showLeds(`
-                                # # # . .
-                                # # . . .
-                                # . # . .
-                                . . . # .
-                                . . . . .
-                            `);
-                            this.handleDynamicSensorSelection(SHOW_EACH_SENSOR_FOR_MS / 3);
+                        if (this.uiMode != UI_MODE.SENSOR_SELECTION) return
+                        basic.showLeds(`
+                            . . # . .
+                            . . # . .
+                            # # # # #
+                            . # # # .
+                            . . # . .
+                        `);
+                        this.handleDynamicSensorSelection(SHOW_EACH_SENSOR_FOR_MS / 3);
 
-                            basic.showLeds(`
-                                . . # . .
-                                . . # . .
-                                # # # # #
-                                . # # # .
-                                . . # . .
-                            `);
-                            this.handleDynamicSensorSelection(SHOW_EACH_SENSOR_FOR_MS / 3);
-
-                            basic.showLeds(`
-                                . . # . .
-                                . . # # .
-                                # # # # #
-                                . . # # .
-                                . . # . .
-                            `);
-                            this.handleDynamicSensorSelection(SHOW_EACH_SENSOR_FOR_MS / 3);
-                        }
+                        if (this.uiMode != UI_MODE.SENSOR_SELECTION) return
+                        basic.showLeds(`
+                            . . # . .
+                            . . # # .
+                            # # # # #
+                            . . # # .
+                            . . # . .
+                        `);
+                        this.handleDynamicSensorSelection(SHOW_EACH_SENSOR_FOR_MS / 3);
                         break;
                     }
                         
                     case UI_SENSOR_SELECT_STATE.TEMPERATURE: {
-                        if (this.uiMode == UI_MODE.CONFIRM_SELECTION) {
-                            basic.clearScreen()
-                            basic.showString("Temp?");
-                            basic.pause(25)
-                        }
-
-                        else if (this.uiMode == UI_MODE.SENSOR_SELECTION) {
-                            basic.showLeds(`
-                                # . . . .
-                                . . # # .
-                                . # . . .
-                                . # . . .
-                                . . # # .
-                            `)
-                            this.handleDynamicSensorSelection(SHOW_EACH_SENSOR_FOR_MS);
-                        }
+                        if (this.uiMode != UI_MODE.SENSOR_SELECTION) return
+                        basic.showLeds(`
+                            # . . . .
+                            . . # # .
+                            . # . . .
+                            . # . . .
+                            . . # # .
+                        `)
+                        this.handleDynamicSensorSelection(SHOW_EACH_SENSOR_FOR_MS);
                         break;
                     }
 
                     case UI_SENSOR_SELECT_STATE.LIGHT: {
-                        if (this.uiMode == UI_MODE.CONFIRM_SELECTION) {
-                            basic.clearScreen()
-                            basic.showString("Light?");
-                            basic.pause(25)
-                        }
-
-                        else if (this.uiMode == UI_MODE.SENSOR_SELECTION) {
-                            basic.showLeds(`
-                                . . . . .
-                                . # # # .
-                                . . # . .
-                                . . . . .
-                                . . # . .
-                            `)
-                            this.handleDynamicSensorSelection(SHOW_EACH_SENSOR_FOR_MS / 2);
-                            
-                            basic.showLeds(`
-                                . # # # .
-                                . # # # .
-                                . # # # .
-                                . . . . .
-                                . . # . .
-                            `)
-                            this.handleDynamicSensorSelection(SHOW_EACH_SENSOR_FOR_MS / 2);
-                        }
+                        if (this.uiMode != UI_MODE.SENSOR_SELECTION) return
+                        basic.showLeds(`
+                            . . . . .
+                            . # # # .
+                            . . # . .
+                            . . . . .
+                            . . # . .
+                        `)
+                        this.handleDynamicSensorSelection(SHOW_EACH_SENSOR_FOR_MS / 2);
+                        
+                        basic.showLeds(`
+                            . # # # .
+                            . # # # .
+                            . # # # .
+                            . . . . .
+                            . . # . .
+                        `)
+                        this.handleDynamicSensorSelection(SHOW_EACH_SENSOR_FOR_MS / 2);
                         break;
                     }
 
                     case UI_SENSOR_SELECT_STATE.MAGNET: {
-                        if (this.uiMode == UI_MODE.CONFIRM_SELECTION) {
-                            basic.clearScreen()
-                            basic.showString("Magnet?");
-                            basic.pause(25)
-                        }
+                        if (this.uiMode != UI_MODE.SENSOR_SELECTION) return
+                        basic.showLeds(`
+                            . # # # .
+                            # # # # #
+                            # # . # #
+                            . . . . .
+                            . . . . .
+                        `)
+                        this.handleDynamicSensorSelection(SHOW_EACH_SENSOR_FOR_MS / 2);
 
-                        else if (this.uiMode == UI_MODE.SENSOR_SELECTION) {
-                            basic.showLeds(`
-                                . # # # .
-                                # # # # #
-                                # # . # #
-                                . . . . .
-                                . . . . .
-                            `)
-                            this.handleDynamicSensorSelection(SHOW_EACH_SENSOR_FOR_MS / 2);
-
-                            basic.showLeds(`
-                                . # # # .
-                                # # # # #
-                                # # . # #
-                                . . . . .
-                                # # . # #
-                            `)
-                            this.handleDynamicSensorSelection(SHOW_EACH_SENSOR_FOR_MS / 2);
-                        }
+                        basic.showLeds(`
+                            . # # # .
+                            # # # # #
+                            # # . # #
+                            . . . . .
+                            # # . # #
+                        `)
+                        this.handleDynamicSensorSelection(SHOW_EACH_SENSOR_FOR_MS / 2);
                         break;
                     }
 
                     case UI_SENSOR_SELECT_STATE.RADIO: {
-                        if (this.uiMode == UI_MODE.CONFIRM_SELECTION) {
-                            basic.clearScreen()
-                            basic.showString("Radio?");
-                            basic.pause(25)
-                        }
-
-                        else if (this.uiMode == UI_MODE.SENSOR_SELECTION) {
-                            basic.showLeds(`
-                                . . . . .
-                                . . . . .
-                                . # # # .
-                                # . . . #
-                                . . # . . 
-                            `)
-                            this.handleDynamicSensorSelection(SHOW_EACH_SENSOR_FOR_MS / 2);
-                            
-                            basic.showLeds(`
-                                . # # # .
-                                # . . . #
-                                . # # # .
-                                # . . . #
-                                . . # . .
-                            `)
-                            this.handleDynamicSensorSelection(SHOW_EACH_SENSOR_FOR_MS / 2);
-                        }
+                        if (this.uiMode != UI_MODE.SENSOR_SELECTION) return
+                        basic.showLeds(`
+                            . . . . .
+                            . . . . .
+                            . # # # .
+                            # . . . #
+                            . . # . . 
+                        `)
+                        this.handleDynamicSensorSelection(SHOW_EACH_SENSOR_FOR_MS / 2);
+                        
+                        basic.showLeds(`
+                            . # # # .
+                            # . . . #
+                            . # # # .
+                            # . . . #
+                            . . # . .
+                        `)
+                        this.handleDynamicSensorSelection(SHOW_EACH_SENSOR_FOR_MS / 2);
                         break;
                     }
-                    
+
                     default:
                         return;
                 }
