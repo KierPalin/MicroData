@@ -148,6 +148,13 @@ namespace microcode {
         constructor(app: App, arcadeShieldIsConnected: boolean, callbackObj?: ITargetDataLoggedCallback) {
             this.app = app;
 
+            //--------------
+            // Unbind A & B:
+            //--------------
+
+            input.onButtonPressed(1, () => {});
+            input.onButtonPressed(2, () => {});
+
             //------------------------------------------------------
             // Variables used by both the Commander and the Targets:
             //------------------------------------------------------

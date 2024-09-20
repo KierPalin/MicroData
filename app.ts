@@ -21,11 +21,11 @@ namespace microcode {
 
             this.sceneManager = new SceneManager()
             datalogger.includeTimestamp(FlashLogTimeStampFormat.None)
-            
+
             if (screenhelpers.displayPresent())
                 this.pushScene(new Home(this))
             else
-                new DistributedLoggingProtocol(this, false);
+                new NoArcadeShieldMode(this);
         }
 
         public pushScene(scene: Scene) {

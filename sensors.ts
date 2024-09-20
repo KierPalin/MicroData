@@ -68,6 +68,11 @@ namespace microcode {
         getReading(): number;
 
         /**
+         * NOT overriden by sensor implementations. It uses .getReading(), .getMinimum() & .getMaximum() which all ARE overriden.
+         */
+        getNormalisedReading(): number;
+
+        /**
          * Overriden by some concrete sensor implementations.
          */
         getMinimum(): number;
@@ -100,7 +105,7 @@ namespace microcode {
         /**
          * Not overriden by any concrete sensor implmentation.
          */
-        getNthNormalisedReading(n: number): number;
+        getNthHeightNormalisedReading(n: number): number;
         
         /**
          * Not overriden by any concrete sensor implmentation.
@@ -110,7 +115,7 @@ namespace microcode {
         /**
          * Not overriden by any concrete sensor implmentation.
          */
-        getNormalisedBufferLength(): number;
+        getHeightNormalisedBufferLength(): number;
         
         /**
          * Not overriden by any concrete sensor implmentation.
@@ -196,6 +201,8 @@ namespace microcode {
     export class SensorScheduler {
         /** Ordered sensor periods */
         private schedule: {sensor: Sensor, waitTime: number}[];
+
+        /** These are configured sensors that will be scheduled upon. */
         private sensors: Sensor[];
 
         /** This class can be used evven if an Arcade Shield is not connected; the 5x5 matrix will display the number of measurements for the sensor with the most time left if this is the case */
@@ -372,7 +379,7 @@ namespace microcode {
          * Entire dataBuffer may be recalculated via .normaliseDataBuffer()
          * Values are shifted out from FIFO if at max capacity.
          */
-        private normalisedDataBuffer: number[]
+        private heightNormalisedDataBuffer: number[]
 
         constructor() {
             this.maxBufferSize = 80
@@ -383,7 +390,7 @@ namespace microcode {
             this.lastLoggedEventDescription = ""
             this.dataBuffer = []
             this.lastLoggedReading = 0
-            this.normalisedDataBuffer = []
+            this.heightNormalisedDataBuffer = []
         }
 
         //------------------
@@ -428,15 +435,16 @@ namespace microcode {
         getName(): string {return "abstract"}
         getRadioName(): string {return "abstract"}
         getReading(): number {return 0}
+        getNormalisedReading(): number {return Math.abs(this.getReading()) / (Math.abs(this.getMinimum()) + this.getMaximum())}
         getMinimum(): number {return DEFAULT_SENSOR_MINIMUM;}
         getMaximum(): number {return DEFAULT_SENSOR_MAXIMUM;}
         isJacdac(): boolean {return false;}
 
         getMaxBufferSize(): number {return this.maxBufferSize}
         getNthReading(n: number): number {return this.dataBuffer[n]}
-        getNthNormalisedReading(n: number): number {return this.normalisedDataBuffer[n]}
+        getNthHeightNormalisedReading(n: number): number {return this.heightNormalisedDataBuffer[n]}
         getBufferLength(): number {return this.dataBuffer.length}
-        getNormalisedBufferLength(): number {return this.normalisedDataBuffer.length}
+        getHeightNormalisedBufferLength(): number {return this.heightNormalisedDataBuffer.length}
         getPeriod(): number {return this.config.period;}
         getMeasurements(): number {return this.config.measurements}
         hasMeasurements(): boolean {return this.config.measurements > 0;}
@@ -491,7 +499,7 @@ namespace microcode {
             if (this.dataBuffer.length > newBufferSize) {
                 const difference = this.dataBuffer.length - newBufferSize
                 this.dataBuffer.splice(0, difference)
-                this.normalisedDataBuffer.splice(0, difference)
+                this.heightNormalisedDataBuffer.splice(0, difference)
             }
             this.maxBufferSize = newBufferSize
         }
@@ -508,7 +516,7 @@ namespace microcode {
 
             if (this.dataBuffer.length >= this.maxBufferSize || reading === undefined) {
                 this.dataBuffer.shift();
-                this.normalisedDataBuffer.shift();
+                this.heightNormalisedDataBuffer.shift();
             }
 
             if (reading === undefined)
@@ -517,7 +525,7 @@ namespace microcode {
             this.numberOfReadings += 1
             const range: number = Math.abs(this.getMinimum()) + this.getMaximum();
             this.dataBuffer.push(reading);
-            this.normalisedDataBuffer.push(Math.round(Screen.HEIGHT - ((reading - this.getMinimum()) / range) * (BUFFERED_SCREEN_HEIGHT - fromY)) - fromY);
+            this.heightNormalisedDataBuffer.push(Math.round(Screen.HEIGHT - ((reading - this.getMinimum()) / range) * (BUFFERED_SCREEN_HEIGHT - fromY)) - fromY);
         }
 
         /**
@@ -530,9 +538,9 @@ namespace microcode {
             const min = this.getMinimum()
             const range: number = Math.abs(min) + this.getMaximum();
 
-            this.normalisedDataBuffer = []
+            this.heightNormalisedDataBuffer = []
             for (let i = 0; i < this.dataBuffer.length; i++) {
-                this.normalisedDataBuffer.push(Math.round(Screen.HEIGHT - ((this.dataBuffer[i] - min) / range) * (BUFFERED_SCREEN_HEIGHT - fromY)) - fromY);
+                this.heightNormalisedDataBuffer.push(Math.round(Screen.HEIGHT - ((this.dataBuffer[i] - min) / range) * (BUFFERED_SCREEN_HEIGHT - fromY)) - fromY);
             }
         }
 
@@ -592,13 +600,13 @@ namespace microcode {
          * @param color
          */
         draw(fromX: number, color: number): void {
-            for (let i = 0; i < this.normalisedDataBuffer.length - 1; i++) {
+            for (let i = 0; i < this.heightNormalisedDataBuffer.length - 1; i++) {
                 for (let j = -(PLOT_SMOOTHING_CONSTANT / 2); j < PLOT_SMOOTHING_CONSTANT / 2; j++) {
                     screen().drawLine(
                         fromX + i,
-                        this.normalisedDataBuffer[i] + j,
+                        this.heightNormalisedDataBuffer[i] + j,
                         fromX + i + 1,
-                        this.normalisedDataBuffer[i + 1] + j,
+                        this.heightNormalisedDataBuffer[i + 1] + j,
                         color
                     );
                 }

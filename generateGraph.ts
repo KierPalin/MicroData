@@ -124,11 +124,11 @@ namespace microcode {
             // Unbind all controls - since .processReadings() may take some time if there are an immense amount of readings:
             // Pressing a button during this early stage of processing may crash:
             control.onEvent(ControllerButtonEvent.Pressed, controller.up.id, () => {});
-            control.onEvent(ControllerButtonEvent.Pressed,controller.down.id,() => {});
-            control.onEvent(ControllerButtonEvent.Pressed,controller.left.id,() => {});
-            control.onEvent(ControllerButtonEvent.Pressed,controller.right.id,() => {});
-            control.onEvent(ControllerButtonEvent.Pressed,controller.A.id,() => {});
-            control.onEvent(ControllerButtonEvent.Pressed,controller.B.id,() => {});
+            control.onEvent(ControllerButtonEvent.Pressed, controller.down.id,() => {});
+            control.onEvent(ControllerButtonEvent.Pressed, controller.left.id,() => {});
+            control.onEvent(ControllerButtonEvent.Pressed, controller.right.id,() => {});
+            control.onEvent(ControllerButtonEvent.Pressed, controller.A.id,() => {});
+            control.onEvent(ControllerButtonEvent.Pressed, controller.B.id,() => {});
 
             this.lowestPeriod = 0;
             this.greatestPeriod = 0;

@@ -147,8 +147,8 @@ namespace microcode {
                         this.sensors.forEach((sensor) => sensor.setBufferSize(140));
 
                         const sensor = this.sensors[this.oscSensorIndex];
-                        this.oscXCoordinate = Math.round(sensor.getNormalisedBufferLength() / 2);
-                        this.oscReading = sensor.getNthNormalisedReading(this.oscXCoordinate);
+                        this.oscXCoordinate = Math.round(sensor.getHeightNormalisedBufferLength() / 2);
+                        this.oscReading = sensor.getNthHeightNormalisedReading(this.oscXCoordinate);
 ;
                         this.windowLeftBuffer = 0;
                         this.windowRightBuffer = 0;
@@ -206,7 +206,7 @@ namespace microcode {
 
                     else if (this.guiState == GUI_STATE.ZOOMED_IN) {
                         this.oscSensorIndex = Math.max(0, this.oscSensorIndex - 1)
-                        this.oscReading = this.sensors[this.oscSensorIndex].getNthNormalisedReading(this.oscXCoordinate)
+                        this.oscReading = this.sensors[this.oscSensorIndex].getNthHeightNormalisedReading(this.oscXCoordinate)
                     }
 
                     this.sensors.forEach((sensor) => sensor.normaliseDataBuffer(this.windowBotBuffer - (2 * this.yScrollOffset) + (Screen.HEIGHT * 0.0625))) // 8
@@ -236,7 +236,7 @@ namespace microcode {
 
                     else if (this.guiState == GUI_STATE.ZOOMED_IN) {
                         this.oscSensorIndex = Math.min(this.oscSensorIndex + 1, this.sensors.length - 1)
-                        this.oscReading = this.sensors[this.oscSensorIndex].getNthNormalisedReading(this.oscXCoordinate)
+                        this.oscReading = this.sensors[this.oscSensorIndex].getNthHeightNormalisedReading(this.oscXCoordinate)
                     }
                 }
             )
@@ -247,7 +247,7 @@ namespace microcode {
                 () => {
                     if (this.guiState == GUI_STATE.ZOOMED_IN && this.oscXCoordinate > 0) {
                         this.oscXCoordinate -= 1
-                        this.oscReading = this.sensors[this.oscSensorIndex].getNthNormalisedReading(this.oscXCoordinate)
+                        this.oscReading = this.sensors[this.oscSensorIndex].getNthHeightNormalisedReading(this.oscXCoordinate)
                         this.update() // For fast response to the above change
                     }
                 }
@@ -257,9 +257,9 @@ namespace microcode {
                 ControllerButtonEvent.Pressed,
                 controller.right.id,
                 () => {
-                    if (this.guiState == GUI_STATE.ZOOMED_IN && this.oscXCoordinate < this.sensors[this.oscSensorIndex].getNormalisedBufferLength() - 1) {
+                    if (this.guiState == GUI_STATE.ZOOMED_IN && this.oscXCoordinate < this.sensors[this.oscSensorIndex].getHeightNormalisedBufferLength() - 1) {
                         this.oscXCoordinate += 1
-                        this.oscReading = this.sensors[this.oscSensorIndex].getNthNormalisedReading(this.oscXCoordinate)
+                        this.oscReading = this.sensors[this.oscSensorIndex].getNthHeightNormalisedReading(this.oscXCoordinate)
 
                         this.update() // For fast response to the above change
                     }
@@ -340,7 +340,7 @@ namespace microcode {
                         )
 
                         // Draw the latest reading on the right-hand side as a Ticker if at no-zoom:
-                        if (this.guiState != GUI_STATE.ZOOMED_IN && sensor.getNormalisedBufferLength() > 0) {
+                        if (this.guiState != GUI_STATE.ZOOMED_IN && sensor.getHeightNormalisedBufferLength() > 0) {
                             const fromY = this.windowBotBuffer - 2 * this.yScrollOffset + (Screen.HEIGHT * 0.078125) // 10
 
                             const reading = sensor.getReading()
@@ -540,7 +540,7 @@ namespace microcode {
                 )
 
                 // End:
-                const end: string = (this.sensors[0].numberOfReadings + this.sensors[0].getNormalisedBufferLength()).toString() 
+                const end: string = (this.sensors[0].numberOfReadings + this.sensors[0].getHeightNormalisedBufferLength()).toString() 
                 screen().print(
                     end,
                     Screen.WIDTH - this.windowRightBuffer - (end.length * font.charWidth) - 1,
