@@ -183,7 +183,7 @@ namespace microcode {
                                 case CONFIG_ROW.PERIOD_OR_EVENT: {
                                     if (this.currentConfigMode == CONFIG_MODE.PERIOD) {
                                         this.sensorConfigs[this.sensorIndex].period = 0
-                                        for (let col = 0; col < this.guiConfigValues.length; col++)
+                                        for (let col = 0; col < TIME_CONVERSION_TABLE.length; col++)
                                             this.sensorConfigs[this.sensorIndex].period += this.guiConfigValues[this.sensorIndex][col] * TIME_CONVERSION_TABLE[col];
                                     }
 
@@ -255,7 +255,11 @@ namespace microcode {
                                 }
 
                                 else if (this.currentConfigMode == CONFIG_MODE.PERIOD) {
+
                                     this.guiConfigValues[this.sensorIndex][this.eventOrPeriodIndex] += 1
+                                    // basic.showNumber(this.sensorIndex)
+                                    // basic.showNumber(this.eventOrPeriodIndex)
+                                    // basic.showNumber(this.guiConfigValues[this.sensorIndex][this.eventOrPeriodIndex])
                                 }
                                 break;
                             }                       

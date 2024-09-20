@@ -393,8 +393,6 @@ namespace microcode {
             this.heightNormalisedDataBuffer = []
         }
 
-
-
         //------------------
         // Factory Function:
         //------------------
@@ -419,7 +417,7 @@ namespace microcode {
             else if (name == "A. Pin 2" || name == "Analog Pin 2" || name == "AP2")    return new AnalogPinP2Sensor();
             else if (name == "Light" || name == "L")                                   return new LightSensor();
             else if (name == "Temp." || name == "Temperature" || name == "T")          return new TemperatureSensor();
-            else if (name == "Magnet" || name == "M")                                  return new MagnetXSensor();
+            else if (name == "Magnet" || name == "M")                                  return new MagnetSensor();
             else if (name == "Logo Pressed" || name == "Logo Press" || name == "LP")   return new LogoPressSensor();
             else if (name == "Volume" || name == "Microphone" || name == "V")          return new VolumeSensor();
             else if (name == "Compass" || name == "C")                                 return new CompassHeadingSensor();
@@ -821,7 +819,7 @@ namespace microcode {
     /**
      * Micro-tesla reading of the magnet sensor on Dimension.Strength
      */
-    export class MagnetXSensor extends Sensor {
+    export class MagnetSensor extends Sensor {
         constructor() {super()}
 
         public static getName(): string {return "Magnet"}
@@ -829,10 +827,8 @@ namespace microcode {
         public static getReading(): number {return input.magneticForce(Dimension.Strength)}
     }
 
-
     /**
      * Onboard Pitch or Roll sensor
-     * 
      */
     export class PitchSensor extends Sensor {
         constructor() {super()}
