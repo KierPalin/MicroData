@@ -100,7 +100,7 @@ namespace microcode {
                 {sensor: new AccelerometerYSensor(), uiState: UI_SENSOR_SELECT_STATE.ACCELERATION, threshold: 0.25}, 
                 {sensor: new AccelerometerZSensor(), uiState: UI_SENSOR_SELECT_STATE.ACCELERATION, threshold: 0.25},
                 {sensor: new LightSensor(),          uiState: UI_SENSOR_SELECT_STATE.LIGHT,        threshold: 0.75},
-                {sensor: new MagnetXSensor(),        uiState: UI_SENSOR_SELECT_STATE.MAGNET,       threshold: 0.80},
+                {sensor: new MagnetSensor(),        uiState: UI_SENSOR_SELECT_STATE.MAGNET,       threshold: 0.80},
             ];
 
             // Don't trigger the same sensor selection twice in a row:
@@ -357,7 +357,7 @@ namespace microcode {
                     return [new LightSensor()]
 
                 case UI_SENSOR_SELECT_STATE.MAGNET:
-                    return [new MagnetXSensor()]
+                    return [new MagnetSensor()]
 
                 case UI_SENSOR_SELECT_STATE.RADIO:
                     new DistributedLoggingProtocol(this.app, false);
