@@ -23,7 +23,7 @@ namespace microcode {
         private jacdacSensorSelected: boolean
         
         constructor(app: App, nextSceneEnum: CursorSceneEnum) {
-            super(app, function () {app.popScene(); app.pushScene(new Home(this.app))}, new GridNavigator(4, 5)); // 4x5 grid
+            super(app, function () {app.popScene(); app.pushScene(new Home(this.app))}, new GridNavigator(3, 5)); // 4x5 grid
             this.btns = [];
             this.selectedSensorAriaIDs = [];
             this.nextSceneEnum = nextSceneEnum;
@@ -36,14 +36,12 @@ namespace microcode {
             this.cursor.resetOutlineColourOnMove = true
             const icons: string[] = [
                 "accelerometer", "accelerometer", "accelerometer", "right_turn", "right_spin", "pin_0", "pin_1", "pin_2",
-                "led_light_sensor", "thermometer", "magnet", "finger_press", "microphone", "compass", "microbitLogoWhiteBackground",
-                "microbitLogoWhiteBackground", "microbitLogoWhiteBackground", "microbitLogoWhiteBackground", "microbitLogoWhiteBackground"
+                "led_light_sensor", "thermometer", "magnet", "finger_press", "microphone", "compass"
             ]
 
             const ariaIDs: string[] = [
                 "Accelerometer X", "Accelerometer Y", "Accelerometer Z", "Pitch", "Roll", "Analog Pin 0", "Analog Pin 1", "Analog Pin 2", "Light",
-                "Temperature", "Magnet", "Logo Press", "Microphone", "Compass", "Jacdac Flex", "Jacdac Temperature", "Jacdac Light",
-                "Jacdac Moisture", "Jacdac Distance"
+                "Temperature", "Magnet", "Logo Press", "Microphone", "Compass"
             ]
 
             //-----------------------------------------------------
@@ -118,7 +116,7 @@ namespace microcode {
                 x += 30
                 if (x > 60) {
                     x = -60
-                    y += Screen.HEIGHT * 0.21875 // 28 on 128 pixel high Arcade Shield
+                    y += Screen.HEIGHT * 0.35 // 0.21875 // 28 on 128 pixel high Arcade Shield
                 }
             }
 
