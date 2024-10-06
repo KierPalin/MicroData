@@ -49,7 +49,7 @@ namespace microcode {
             //-----------------------------------------------------
 
             let x: number = -60;
-            let y: number = Screen.HEIGHT * -0.3125 // y = -40 on an Arcade Shield of height 128 pixels
+            let y: number = Screen.HEIGHT * -0.30 // Decreased from y = -40 on an Arcade Shield of height 128 pixels
             for (let i = 0; i < icons.length; i++) {
                 this.btns.push(new Button({
                     parent: null,
@@ -116,7 +116,7 @@ namespace microcode {
                 x += 30
                 if (x > 60) {
                     x = -60
-                    y += Screen.HEIGHT * 0.35 // 0.21875 // 28 on 128 pixel high Arcade Shield
+                    y += Screen.HEIGHT * 0.34 // 0.21875 // 28 on 128 pixel high Arcade Shield
                 }
             }
 
