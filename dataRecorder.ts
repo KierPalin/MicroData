@@ -2,7 +2,10 @@ namespace microdata {
     import Screen = user_interface_base.Screen
     import Scene  = user_interface_base.Scene
     import AppInterface = user_interface_base.AppInterface
-
+    import font = user_interface_base.font
+    import Affine = user_interface_base.Affine
+    import Sprite = user_interface_base.Sprite
+    
     /** Number of sensor information boxes that can fit onto the screen at once*/
     const MAX_SENSORS_ON_SCREEN: number = 5
     /** The colours that will be used for the lines & sensor information boxes */
@@ -29,6 +32,11 @@ namespace microdata {
         private sensorIndexOffset: number;
         /** For the currentSensorIndex */
         private sensorBoxColor: number;
+
+        private showCancelRecordingScreen: boolean;
+        private currentlyCancelling: boolean
+        private yesBtn: Sprite // currentBtn = 0
+        private noBtn: Sprite // currentBtn = 1
 
         constructor(app: AppInterface, sensors: Sensor[]) {
             super(app, "dataRecorder")

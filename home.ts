@@ -130,7 +130,7 @@ namespace microdata {
                         ((Screen.WIDTH + wordLogo.width) >> 1) 
                         + dy
                         -
-                        microcode.font.charWidth * tagline.length,
+                        font.charWidth * this.tagline.length,
                     Screen.TOP_EDGE +
                         OFFSET +
                         wordLogo.height +
