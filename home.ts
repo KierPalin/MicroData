@@ -13,13 +13,18 @@ namespace microdata {
         private recordDataBtn: Button
         private distributedLoggingBtn: Button
         private viewBtn: Button
+        private tagline: string;
 
-        constructor(app: AppInterface) {super(app)}
+        constructor(app: AppInterface) {
+            super(app)
+            this.tagline = ["Lets measure!", "Hello :)", "Lets experiment!", "Mini-measurer", 
+                "Record & view", "Data Science toolkit", "Start experimenting!"][randint(0, 6)]
+        }
 
         /* override */ startup() {
             super.startup()
 
-            const y = Screen.HEIGHT * 0.234 // y = 30 on an Arcade Shield of height 128 pixels
+            const y = 25
 
             this.liveDataBtn = new Button({
                 parent: null,
@@ -80,8 +85,8 @@ namespace microdata {
         private drawVersion() {
             const font = bitmaps.font5
             Screen.print(
-                "v1.5",
-                Screen.RIGHT_EDGE - font.charWidth * "v1.5".length,
+                "v1.5.1",
+                Screen.RIGHT_EDGE - font.charWidth * "v1.5.1".length,
                 Screen.BOTTOM_EDGE - font.charHeight - 2,
                 0xb,
                 font
@@ -102,7 +107,7 @@ namespace microdata {
             const t = control.millis()
             const dy = this.yOffset == 0 ? (Math.idiv(t, 800) & 1) - 1 : 0
             const margin = 2
-            const OFFSET = (Screen.HEIGHT >> 1) - wordLogo.height - margin
+            const OFFSET = (Screen.HEIGHT >> 1) - wordLogo.height - margin - 9
             const y = Screen.TOP_EDGE + OFFSET //+ dy
             Screen.drawTransparentImage(
                 wordLogo,
@@ -119,20 +124,19 @@ namespace microdata {
             )
 
             if (!this.yOffset) {
-                const tagline = resolveTooltip("Data Science!")
                 Screen.print(
-                    tagline,
+                    this.tagline,
                     Screen.LEFT_EDGE +
                         ((Screen.WIDTH + wordLogo.width) >> 1) 
                         + dy
                         -
-                        font.charWidth * tagline.length,
+                        microcode.font.charWidth * tagline.length,
                     Screen.TOP_EDGE +
                         OFFSET +
                         wordLogo.height +
                         dy +
                         this.yOffset +
-                        1,
+                        3,
                     0xb,
                     font
                 )
